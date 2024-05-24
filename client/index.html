@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Questionare</title>
+    <link rel="icon" type="icon" href="./images/favicon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Select a Topic</h2>
+        <select id="topicDropdown" onchange="handleTopicChange()">
+            <option value="">--Select a topic--</option>
+            <option value="geography">Geography</option>
+            <option value="sports">Sports</option>
+            <option value="science">Science</option>
+        </select>
+
+        <div class="question" id="questionField">Please select a topic to see the question.</div>
+
+        <input type="text" id="answerField" placeholder="Type your answer here">
+
+        <button onclick="submitAnswer()">Submit Answer</button>
+
+        <div class="result" id="resultField"></div>
+    </div>
+
+    <script>
+        async function handleTopicChange() {
+            const topic = document.getElementById("topicDropdown").value;
+            const questionField = document.getElementById("questionField");
+            const answerField = document.getElementById("answerField");
+            const resultField = document.getElementById("resultField");
+
+            questionField.textContent = "Please select a topic to see the question.";
+            answerField.value = '';
+            resultField.textContent = '';
+
+            if (topic) {
+                fetchQuestion(topic);
+            }
+        }
+
+        async function fetchQuestion() {
+            const topic = document.getElementById("topicDropdown").value;
+            console.log(topic);
+            const questionField = document.getElementById("questionField");
+            const resultField = document.getElementById("resultField");
+            if (!topic) {
+                questionField.textContent = "Please select a topic to see the question.";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/generatequeston', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic: topic })
+                });
+
+                const data = await response.json();
+                console.log(data);
+                questionField.textContent = data;
+                resultField.textContent = '';
+            } catch (error) {
+                console.error('Error fetching question:', error);
+                questionField.textContent = 'Error fetching question. Please try again.';
+            }
+        }
+
+        async function submitAnswer() {
+            const question = document.getElementById("questionField").textContent;
+            const userAnswer = document.getElementById("answerField").value;
+            const resultField = document.getElementById("resultField");
+
+            if (!question || !userAnswer) {
+                resultField.textContent = 'Please enter an answer.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/check-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question, userAnswer: userAnswer })
+                });
+
+                const data = await response.json();
+                resultField.textContent = `the marks obtained are:-${data}`;
+            } catch (error) {
+                console.error('Error checking answer:', error);
+                resultField.textContent = 'Error checking answer. Please try again.';
+            }
+        }
+    </script>
+
+</body>
+
+</html>
